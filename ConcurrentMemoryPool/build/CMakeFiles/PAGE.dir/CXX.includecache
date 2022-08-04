@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/Common.h
+algorithm
+-
+assert.h
+-
+iostream
+-
+map
+-
+mutex
+-
+stdlib.h
+-
+thread
+-
+unordered_map
+-
+vector
+-
+unistd.h
+-
+
+../include/PageCache.h
+Common.h
+../include/Common.h
+sys/mman.h
+-
+
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/src/PageCache.cpp
+PageCache.h
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/src/PageCache.h
+

@@ -1,0 +1,6 @@
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/build/CMakeFiles/rebuild_cache.dir
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/build/CMakeFiles/edit_cache.dir
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/build/CMakeFiles/main.dir
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/build/CMakeFiles/CEN.dir
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/build/CMakeFiles/THR.dir
+/home/ubuntu/new_CPP/ConcurrentMemoryPool/ConcurrentMemoryPool/build/CMakeFiles/PAGE.dir

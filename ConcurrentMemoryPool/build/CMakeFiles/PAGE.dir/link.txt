@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -g  -shared -Wl,-soname,libPAGE.so -o libPAGE.so CMakeFiles/PAGE.dir/src/PageCache.cpp.o 

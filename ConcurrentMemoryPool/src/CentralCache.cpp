@@ -6,9 +6,9 @@ CentralCache CentralCache::_inst;
 Span *CentralCache::GetOneSpan(SpanList &spanlist, size_t byte_size)
 {
 	Span *span = spanlist.Begin();
-	while (span != spanlist.End()) //当前找到一个span
+	while (span != spanlist.End())
 	{
-		if (span->_list != nullptr)
+		if (span->_list != nullptr) //当前找到一个span
 			return span;
 		else
 			span = span->_next;
@@ -17,8 +17,8 @@ Span *CentralCache::GetOneSpan(SpanList &spanlist, size_t byte_size)
 	// 走到这儿，说明前面没有获取到span,都是空的，到下一层pagecache获取span
 	Span *newspan = PageCache::GetInstence()->NewSpan(SizeClass::NumMovePage(byte_size));
 	// 将span页切分成需要的对象并链接起来
-	char *cur = (char *)(newspan->_pageid << PAGE_SHIFT);
-	char *end = cur + (newspan->_npage << PAGE_SHIFT);
+	char *cur = (char *)(newspan->_pageid << PAGE_SHIFT); //页号左移12位 表示页首部地址
+	char *end = cur + (newspan->_npage << PAGE_SHIFT);	  //最后一页的首地址
 	newspan->_list = cur;
 	newspan->_objsize = byte_size;
 
@@ -68,7 +68,7 @@ size_t CentralCache::FetchRangeObj(void *&start, void *&end, size_t n, size_t by
 	span->_list = cur;
 	span->_usecount += batchsize;
 
-	//将空的span移到最后，保持非空的span在前面
+	//将空的span(已经使用完了)移到最后，保持非空的span在前面
 	if (span->_list == nullptr)
 	{
 		spanlist.Erase(span);
@@ -98,7 +98,7 @@ void CentralCache::ReleaseListToSpans(void *start, size_t size)
 
 		////到时候记得加锁
 		// spanlist.Lock(); // 构成了很多的锁竞争
-
+		// 加入Map
 		Span *span = PageCache::GetInstence()->MapObjectToSpan(start);
 		NEXT_OBJ(start) = span->_list;
 		span->_list = start;

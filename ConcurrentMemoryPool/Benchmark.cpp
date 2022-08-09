@@ -3,7 +3,7 @@
 #include "pthread.h"
 #include "string.h"
 
-#define SIZE 16
+#define SIZE 12 * (1 << PAGE_SHIFT)
 
 void BenchmarkMalloc(size_t ntimes, size_t nworks, size_t rounds)
 {
@@ -90,10 +90,10 @@ int main(int argc, char *argv[])
 {
 	cout << "==========================================================" << endl;
 	if (!strcmp(argv[1], "0"))
-		BenchmarkMalloc(100, 100, 10);
+		BenchmarkMalloc(10, 2, 100);
 	cout << endl;
 	if (!strcmp(argv[1], "1"))
-		BenchmarkConcurrentMalloc(100, 100, 10);
+		BenchmarkConcurrentMalloc(10, 2, 100);
 	cout << endl;
 	cout << "==========================================================" << endl;
 	// system("pause");

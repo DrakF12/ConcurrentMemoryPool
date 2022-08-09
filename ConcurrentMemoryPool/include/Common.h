@@ -58,7 +58,7 @@ public:
 		return obj;
 	}
 
-	void *PopRange()
+	void *PopRange() //弹出所有的对象
 	{
 		_size = 0;
 		void *list = _list;
@@ -98,7 +98,7 @@ public:
 		size_t alignnum = 1 << align; //库里实现的方法
 		return ((size + alignnum - 1) >> align) - 1;
 	}
-
+	// 内存对齐
 	inline static size_t _Roundup(size_t size, size_t align)
 	{
 		size_t alignnum = 1 << align;
@@ -111,7 +111,7 @@ public:
 	// [129,1024]			16byte对齐 freelist[16,72)		56个链
 	// [1025,8*1024]		128byte对齐 freelist[72,128)	56个链
 	// [8*1024+1,64*1024]	1024byte对齐 freelist[128,184)	56个链
-
+	// 最大为 64K的空间
 	inline static size_t Index(size_t size)
 	{
 		assert(size <= MAX_BYTES);
@@ -175,7 +175,7 @@ public:
 		return num;
 	}
 
-	// 根据size计算中心缓存要从页缓存获取多大的span对象
+	// 根据size计算中心缓存要从页缓存获取多大的span对象，要多大页面的span，至少为1个page
 	static size_t NumMovePage(size_t size)
 	{
 		size_t num = NumMoveSize(size);
@@ -213,7 +213,7 @@ struct Span
 class SpanList
 {
 public:
-	Span *_head;
+	Span *_head; //是一个虚空的节点，类似于STL中的list结构
 	std::mutex _mutex;
 
 public:

@@ -7,8 +7,8 @@ Span *PageCache::AllocBigPageObj(size_t size)
 {
 	assert(size > MAX_BYTES);
 
-	size = SizeClass::_Roundup(size, PAGE_SHIFT); //对齐
-	size_t npage = size >> PAGE_SHIFT;
+	size = SizeClass::_Roundup(size, PAGE_SHIFT); //内存大小对齐
+	size_t npage = size >> PAGE_SHIFT;			  //所需页面的数量
 	if (npage < NPAGES)
 	{
 		Span *span = NewSpan(npage);
@@ -20,7 +20,7 @@ Span *PageCache::AllocBigPageObj(size_t size)
 #ifdef _WIN32
 		void *ptr = VirtualAlloc(0, (NPAGES - 1) * (1 << PAGE_SHIFT), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 #else
-		void *ptr = mmap(0, (NPAGES - 1) * (1 << PAGE_SHIFT), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+		void *ptr = mmap(0, (npage - 1) * (1 << PAGE_SHIFT), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
 #endif
 
 		if (ptr == nullptr)
@@ -45,12 +45,12 @@ void PageCache::FreeBigPageObj(void *ptr, Span *span)
 		span->_objsize = 0;
 		ReleaseSpanToPageCache(span);
 	}
-	else
+	else //超过128页的大内存直接释放
 	{
 		_idspanmap.erase(npage);
 		delete span;
-		printf("Before munmap\n");
-		if (munmap(ptr, 0) != 0)
+		// printf("Before munmap\n");
+		if (munmap(ptr, span->_objsize) != 0)
 			printf("Error in munmap\n");
 		// VirtualFree(ptr, 0, MEM_RELEASE);
 	}
@@ -67,6 +67,7 @@ Span *PageCache::NewSpan(size_t n)
 	return _NewSpan(n);
 }
 
+//找一个大小为n pages的span。如果没有找到，则向上寻找，然后进行拆分。
 Span *PageCache::_NewSpan(size_t n)
 {
 	assert(n < NPAGES);
@@ -105,10 +106,12 @@ Span *PageCache::_NewSpan(size_t n)
 	span->_pageid = (PageID)ptr >> PAGE_SHIFT;
 	span->_npage = NPAGES - 1;
 
+	// 把所有的page归档到这个span
 	for (size_t i = 0; i < span->_npage; ++i)
 		_idspanmap[span->_pageid + i] = span;
 
 	_spanlist[span->_npage].PushFront(span); //方括号
+	// 再找一次，大小为n pages的span
 	return _NewSpan(n);
 }
 

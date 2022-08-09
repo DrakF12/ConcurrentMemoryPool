@@ -6,14 +6,14 @@
 // 所以一次就多申请一些内存块，防止每次到CentralCache去内存块的时候,多次加锁造成效率问题
 void *ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 {
-
 	Freelist *freelist = &_freelist[index];
 	// 不是每次申请10个，而是进行慢增长的过程
-	// 单个对象越小，申请内存块的数量越多
-	// 单个对象越大，申请内存块的数量越小
+	// 单个对象越小，申请内存块的数量越多,最多为512个
+	// 单个对象越大，申请内存块的数量越小,最少为1个(慢启动)
 	// 申请次数越多，数量多
 	// 次数少,数量少
 	size_t maxsize = freelist->MaxSize();
+	// NumMoveSize是一次性最大移动的数量，最大为512个
 	size_t numtomove = std::min(SizeClass::NumMoveSize(size), maxsize);
 
 	void *start = nullptr, *end = nullptr;
@@ -26,10 +26,10 @@ void *ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 
 	if (batchsize > 1)
 	{
-		freelist->PushRange(NEXT_OBJ(start), end, batchsize - 1);
+		freelist->PushRange(NEXT_OBJ(start), end, batchsize - 1); //将剩下的bathsize-1个元素放入freelist中
 	}
 
-	if (batchsize >= freelist->MaxSize())
+	if (batchsize >= freelist->MaxSize()) //慢启动算法，增加maxsize
 	{
 		freelist->SetMaxSize(maxsize + 1);
 	}
@@ -40,9 +40,6 @@ void *ThreadCache::FetchFromCentralCache(size_t index, size_t size)
 //释放对象时，链表过长时，回收内存回到中心缓存
 void ThreadCache::ListTooLong(Freelist *freelist, size_t size)
 {
-	//打桩
-	// return nullptr;
-
 	void *start = freelist->PopRange();
 	CentralCache::Getinstence()->ReleaseListToSpans(start, size);
 }
@@ -73,7 +70,7 @@ void ThreadCache::Deallocate(void *ptr, size_t size)
 	Freelist *freelist = &_freelist[index];
 	freelist->Push(ptr);
 
-	//满足某个条件时(释放回一个批量的对象)，释放回中心缓存
+	//满足某个条件时(释放回一个freelist上的对象)，释放回中心缓存
 	if (freelist->Size() >= freelist->MaxSize())
 	{
 		ListTooLong(freelist, size);

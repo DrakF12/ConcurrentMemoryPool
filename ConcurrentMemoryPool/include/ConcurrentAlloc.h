@@ -7,11 +7,11 @@
 //被动调用，哪个线程来了之后，需要内存就调用这个接口
 static inline void *ConcurrentAlloc(size_t size)
 {
-	if (size > MAX_BYTES) //超过一个最大值 64k，就自己从系统中获取，否则使用内存池
+	if (size > MAX_BYTES) //超过ThreadCache分配最大值 64k，就自己从系统(PageCache)中获取，否则使用内存池
 	{
 		// return malloc(size);
 		Span *span = PageCache::GetInstence()->AllocBigPageObj(size);
-		void *ptr = (void *)(span->_pageid << PAGE_SHIFT);
+		void *ptr = (void *)(span->_pageid << PAGE_SHIFT); //将long long类型转为地址类型
 		return ptr;
 	}
 	else
@@ -20,18 +20,17 @@ static inline void *ConcurrentAlloc(size_t size)
 		{
 			tlslist = new ThreadCache;
 		}
-
 		return tlslist->Allocate(size);
 	}
 }
 
+// 释放接口：释放内存
 static inline void ConcurrentFree(void *ptr) //最后释放
 {
 	Span *span = PageCache::GetInstence()->MapObjectToSpan(ptr);
 	size_t size = span->_objsize;
 	if (size > MAX_BYTES)
 	{
-		// free(ptr);
 		PageCache::GetInstence()->FreeBigPageObj(ptr, span);
 	}
 	else
